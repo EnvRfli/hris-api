@@ -8,9 +8,21 @@ use Illuminate\Http\Request;
 
 class PositionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $positions = Position::with('department')->where('is_active', true)->get();
+        $query = Position::with('department')->where('is_active', true);
+
+        // Filter by department_id if provided
+        if ($request->has('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        // Filter by level if provided
+        if ($request->has('level')) {
+            $query->where('level', $request->level);
+        }
+
+        $positions = $query->get();
         return response()->json($positions);
     }
 
