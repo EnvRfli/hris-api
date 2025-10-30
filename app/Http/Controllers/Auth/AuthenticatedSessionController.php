@@ -19,6 +19,15 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
         
+        // Load employee profile with relationships
+        $user->load([
+            'employeeProfile.department',
+            'employeeProfile.position',
+            'employeeProfile.workShift',
+            'employeeProfile.manager',
+            'roles'
+        ]);
+        
         // Create token for API authentication
         $token = $user->createToken('auth_token')->plainTextToken;
 
