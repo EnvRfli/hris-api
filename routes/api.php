@@ -25,6 +25,12 @@ Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
 Route::post('/reset-password', [NewPasswordController::class, 'store'])
     ->name('password.store');
 
+// Public GET endpoints - untuk dropdown di form (tidak perlu auth)
+Route::get('/departments', [DepartmentController::class, 'index']);
+Route::get('/departments/{id}', [DepartmentController::class, 'show']);
+Route::get('/positions', [PositionController::class, 'index']);
+Route::get('/positions/{id}', [PositionController::class, 'show']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user()->load(['employeeProfile.department', 'employeeProfile.position', 'roles']);
@@ -49,8 +55,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Super Admin & HR only routes
     Route::middleware(['role:super_admin,hr'])->group(function () {
+        // Employee management
         Route::apiResource('employees', EmployeeController::class);
-        Route::apiResource('departments', DepartmentController::class);
-        Route::apiResource('positions', PositionController::class);
+        
+        // Department management (POST, PUT, DELETE only - GET sudah public)
+        Route::post('/departments', [DepartmentController::class, 'store']);
+        Route::put('/departments/{id}', [DepartmentController::class, 'update']);
+        Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
+        
+        // Position management (POST, PUT, DELETE only - GET sudah public)
+        Route::post('/positions', [PositionController::class, 'store']);
+        Route::put('/positions/{id}', [PositionController::class, 'update']);
+        Route::delete('/positions/{id}', [PositionController::class, 'destroy']);
     });
 });
