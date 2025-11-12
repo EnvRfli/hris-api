@@ -28,8 +28,7 @@ class EmployeeController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|confirmed|min:8',
             
-            // WAJIB - Employee basic data
-            'employee_id' => 'required|string|unique:employee_profiles',
+            // WAJIB - Employee basic data (employee_id DIHAPUS dari required, akan auto-generate)
             'phone' => 'required|string|max:20',
             'department_id' => 'required|exists:departments,id',
             'position_id' => 'required|exists:positions,id',
@@ -89,10 +88,28 @@ class EmployeeController extends Controller
             // Assign role
             $user->assignRole($request->role);
 
+            // Auto-generate employee_id
+            // Format: EMP + year + 4 digit sequential number (EMP2025001, EMP2025002, etc)
+            $year = date('Y');
+            $lastEmployee = EmployeeProfile::whereRaw("employee_id LIKE ?", ["EMP{$year}%"])
+                ->orderBy('employee_id', 'desc')
+                ->first();
+            
+            if ($lastEmployee) {
+                // Extract number dari employee_id terakhir (EMP2025001 -> 001)
+                $lastNumber = (int) substr($lastEmployee->employee_id, -4);
+                $newNumber = $lastNumber + 1;
+            } else {
+                // Kalau belum ada employee tahun ini, mulai dari 1
+                $newNumber = 1;
+            }
+            
+            $employeeId = 'EMP' . $year . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+
             // Create employee profile dengan semua field yang ada
             EmployeeProfile::create([
                 'user_id' => $user->id,
-                'employee_id' => $request->employee_id,
+                'employee_id' => $employeeId, // Auto-generated
                 'nip' => $request->nip,
                 'nik' => $request->nik,
                 'phone' => $request->phone,
